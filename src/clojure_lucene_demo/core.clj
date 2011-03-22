@@ -15,6 +15,7 @@
 ; limitations under the License.
 
 (ns clojure-lucene-demo.core
+  (:use [clojure.string :only (lower-case)])
   (:import (org.apache.lucene.document
        Document Field Field$Store Field$Index NumericField)
      (org.apache.lucene.analysis.standard StandardAnalyzer)
@@ -41,17 +42,17 @@
 (defn #^Field create-field
   "Creates a new Lucene Field object."
   ([field-name value]
-   (create-field field-name value true true))
-  ([field-name value analyzed]
-   (create-field field-name value true analyzed))
-  ([field-name value stored analyzed]
+   (create-field field-name value :stored :analyzed))
+  ([field-name value & options]
     (Field. field-name (str value)
-      (if stored
+      (if (some #{:stored} options)
         (Field$Store/YES)
         (Field$Store/NO))
-      (if analyzed
-         (Field$Index/ANALYZED)
-         (Field$Index/NO)))))
+      (if (some #{:analyzed} options)
+        (Field$Index/ANALYZED)
+        (if (some #{:dont-index} options)
+          (Field$Index/NO)
+          (Field$Index/NOT_ANALYZED))))))
 
 (defn create-document
   "Creates a new Lucene Document object using the input provided."
@@ -60,19 +61,22 @@
       #^Document document (Document.)]
 
     (doto document
-      ; create a fulltext field with all the values to search on
-      ; mashed together in a single value
+      ; index a fulltext field with all the values to search on
+      ; mashed together in a single value, but there is no need
+      ; to store this field.
       (.add (create-field "fulltext"
-                (apply str(interpose " " [title description])) false true))
+                (apply str(interpose " " [title description])) :analyzed))
 
-      ; this field is included to run filters on
-      (.add (create-field "category" category))
+      ; this field is included to run filters on. It is indexed, 
+      ; but not analyzed or tokenized (i.e. you need to use
+      ; literal values in the filter or it won't match).
+      (.add (create-field "category" category :stored))
 
       ; these fields are just stored in order to be able to display
       ; them in the search results without loading the document
       ; from a database
-      (.add (create-field "title" title false))
-      (.add (create-field "description" description false)))))
+      (.add (create-field "title" title :stored :dont-index))
+      (.add (create-field "description" description :stored :dont-index)))))
 
 (defn write-index! [directory items]
   (let [analyzer (create-analyzer)
@@ -110,7 +114,7 @@
 
     (when category
       (QueryWrapperFilter.
-        (TermQuery. (Term. "category" (str "\"" category "\"")))))))
+        (TermQuery. (Term. "category" (lower-case category)))))))
 
 (defn search [query query-filter limit reader analyzer]
   (let [searcher (IndexSearcher. reader)
@@ -119,10 +123,6 @@
         top-docs (if-not (nil? query-filter)
                    (.search searcher q query-filter limit (new Sort))
                    (.search searcher q limit))]
-
-    ; prints #<QueryWrapperFilter QueryWrapperFilter(category:"clojure")>
-    ; for the test case in test-search
-    (when-not (nil? query-filter) (println query-filter))
 
     (. searcher close)
 

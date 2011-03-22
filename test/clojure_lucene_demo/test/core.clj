@@ -69,47 +69,34 @@
         (is (.isStored field))
         (is (.isTokenized field)))
       
-      (let [field (create-field "foo" "bar" true)]
+      (let [field (create-field "foo" "bar" :stored :analyzed)]
         (is (= (.name field) "foo"))
         (is (= (.stringValue field) "bar"))
         (is (.isIndexed field))
         (is (.isStored field))
         (is (.isTokenized field)))
       
-      (let [field (create-field "foo" "bar" true true)]
+      (let [field (create-field "foo" "bar" :stored)]
         (is (= (.name field) "foo"))
         (is (= (.stringValue field) "bar"))
         (is (.isIndexed field))
         (is (.isStored field))
-        (is (.isTokenized field)))
-    
-      (let [field (create-field "foo" "bar" false)]
+        (is (not (.isTokenized field))))
+
+      (let [field (create-field "foo" "bar" :stored :dont-index)]
         (is (= (.name field) "foo"))
         (is (= (.stringValue field) "bar"))
         (is (not (.isIndexed field)))
         (is (.isStored field))
         (is (not (.isTokenized field))))
+
       
-      (let [field (create-field "foo" "bar" false true)]
+      (let [field (create-field "foo" "bar" :analyzed)]
         (is (= (.name field) "foo"))
         (is (= (.stringValue field) "bar"))
         (is (.isIndexed field))
         (is (not (.isStored field)))
-        (is (.isTokenized field)))
-    
-    ; Lucene complains if you add a field that is neither
-    ; neither stored or indexed, as it apparantly doesn't
-    ; make sense. ;)
-    ;
-    ; Hmm...
-    ;
-    ; "The world today doesn't make sense, 
-    ; so why should I paint pictures that do?"
-    ;
-    ; - Pablo Picasso
-
-    (is (thrown? java.lang.IllegalArgumentException
-                (create-field "foo" "bar" false false)))))
+        (is (.isTokenized field)))))
 
 (deftest test-create-document
   (testing "Check if a document is correctly tranlated to a Lucene doc"
@@ -137,7 +124,7 @@
         (is (= (.stringValue field) "technology"))
         (is (.isStored field))
         (is (.isIndexed field))
-        (is (.isTokenized field))))
+        (is (not (.isTokenized field)))))
 
     (let [document (create-document (nth dummy-docs 1))]
 
@@ -163,7 +150,7 @@
         (is (= (.stringValue field) "clojure"))
         (is (.isStored field))
         (is (.isIndexed field))
-        (is (.isTokenized field))))
+        (is (not (.isTokenized field)))))
       
     (let [document (create-document (nth dummy-docs 2))]
 
@@ -189,7 +176,7 @@
         (is (= (.stringValue field) "python"))
         (is (.isStored field))
         (is (.isIndexed field))
-        (is (.isTokenized field))))
+        (is (not (.isTokenized field)))))
   
     (let [document (create-document (nth dummy-docs 3))]
 
@@ -215,7 +202,7 @@
         (is (= (.stringValue field) "java"))
         (is (.isStored field))
         (is (.isIndexed field))
-        (is (.isTokenized field))))
+        (is (not (.isTokenized field)))))
 
     (let [document (create-document (nth dummy-docs 4))]
       (is (= (class document) org.apache.lucene.document.Document))
@@ -240,7 +227,7 @@
         (is (= (.stringValue field) "general"))
         (is (.isStored field))
         (is (.isIndexed field))
-        (is (.isTokenized field))))))
+        (is (not (.isTokenized field)))))))
 
 (deftest test-write-index!
   (testing "test indexing process."
@@ -297,32 +284,18 @@
 
         (is (= (class flt) org.apache.lucene.search.QueryWrapperFilter))
         (is (= (.field term) "category"))
-        (is (= (.text term) "\"technology\"")))))
+        (is (= (.text term) "technology")))
+      
+      ; check if filters are correctly converted to lowercase
+      (let [flt (create-filter {:category "TecHnOlOgY"})
+            term (.getTerm (get-field
+                             org.apache.lucene.search.QueryWrapperFilter
+                             "query"
+                             flt))]
 
-; This test is demonstrating the problem:
-;
-; fmw-icarus:clojure-lucene-demo fmw$ lein test
-; Testing clojure-lucene-demo.test.core
-; #<QueryWrapperFilter QueryWrapperFilter(category:"clojure")>
-; FAIL in (test-search) (core.clj:300)
-; testing search.
-; expected: (= (:total-hits result) 1)
-;  actual: (not (= 0 1))
-; Ran 9 tests containing 132 assertions.
-; 1 failures, 0 errors.
-;
-; Basically, without the filter I get 3 results (as expected),
-; but as soon as I filter "clojure" on the category field
-; I get nothing back from the searcher.
-;
-; There are no errors, so maybe I'm doing something wrong with the
-; creation of the field? As the test-create-document test points out,
-; however, its stored, indexed and tokenized. Surely that must be enough
-; to be able to filter on it?
-;
-; Here is a direct link to the search function:
-;
-; https://github.com/fmw/clojure-lucene-demo/blob/master/src/clojure_lucene_demo/core.clj#L115
+        (is (= (class flt) org.apache.lucene.search.QueryWrapperFilter))
+        (is (= (.field term) "category"))
+        (is (= (.text term) "technology")))))
 
 (deftest test-search
     (testing "testing search."
@@ -336,8 +309,6 @@
                 docs (get-docs reader (:docs result))]
             (is (= (:total-hits result) 3))
           
-          ; if you look at this document, you can see there is
-          ; one with "clojure" as a category value in the resultset
           (is (= (.get (first docs) "title") "Planet Clojure"))
           (is (= (.get (first docs) "description")
                        "Aggregates Clojure-related weblog posts."))
@@ -353,11 +324,9 @@
                        "Aggregates Java-related weblog posts."))
           (is (= (.get (last docs) "category") "java"))
 
-          ; this the failing test: as soon as the filter is applied
-          ; we get 0 results, instead of the expected result
-          ; (which is the first result from the query above
           (let [flt (create-filter {:category "clojure"})
                 result (search "planet" flt 5 reader analyzer)
+                document (first (get-docs reader (:docs result)))
                 term (.getTerm (get-field
                              org.apache.lucene.search.QueryWrapperFilter
                              "query"
@@ -366,9 +335,20 @@
             ; the category field, so I expect to get a single result:
             (is (= (:total-hits result) 1))
             
+            (is (= (.get document "title") "Planet Clojure"))
+            (is (= (.get document "description")
+                         "Aggregates Clojure-related weblog posts."))
+            (is (= (.get document "category") "clojure"))
+            
             ; this is redundant with the test for create-filter, but
-            ; it never hurts to check again. At least it looks like the
-            ; filter is correct?
+            ; it never hurts to check again.
             (is (= (class flt) org.apache.lucene.search.QueryWrapperFilter))
             (is (= (.field term) "category"))
-            (is (= (.text term) "\"clojure\""))))))))
+            (is (= (.text term) "clojure")))
+            
+          ; filters are case-sensitive, but create-filter
+          ; function uses lower-case on the value, so this
+          ; should work:
+          (let [flt (create-filter {:category "Clojure"})
+                result (search "planet" flt 5 reader analyzer)]
+            (is (= (:total-hits result) 1))))))))
