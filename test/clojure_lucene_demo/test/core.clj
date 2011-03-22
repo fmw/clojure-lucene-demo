@@ -306,7 +306,7 @@
 ;
 ; Here is a direct link to the search function:
 ;
-; https://github.com/fmw/clojure-lucene-demo/blob/master/src/lucene_filter_problem_demo/core.clj#L99
+; https://github.com/fmw/clojure-lucene-demo/blob/master/src/clojure_lucene_demo/core.clj#L99
 
 (deftest test-search
     (testing "testing search."
