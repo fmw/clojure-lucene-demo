@@ -1,5 +1,6 @@
 (defproject clojure-lucene-demo "1.0.0-SNAPSHOT"
-  :description "FIXME: write"
+  :description "Demo implementation of Lucene code in Clojure"
+  :license {:name "Apache License, version 2."}
   :dependencies [[org.clojure/clojure "1.2.0"]
                  [org.clojure/clojure-contrib "1.2.0"]
                  [clojure-couchdb "0.4.5"]

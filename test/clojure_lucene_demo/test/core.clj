@@ -1,3 +1,19 @@
+; test/clojure_lucene_demo/test/core.clj: Tests for Lucene code.
+;
+; Copyright 2011, F.M. (Filip) de Waard <fmw@vix.io>.
+;
+; Licensed under the Apache License, Version 2.0 (the "License");
+; you may not use this file except in compliance with the License.
+; You may obtain a copy of the License at
+; 
+; http://www.apache.org/licenses/LICENSE-2.0
+; 
+; Unless required by applicable law or agreed to in writing, software
+; distributed under the License is distributed on an "AS IS" BASIS,
+; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+; See the License for the specific language governing permissions and
+; limitations under the License.
+
 (ns clojure-lucene-demo.test.core
   (:use [clojure-lucene-demo.core] :reload)
   (:use [clojure.test])
@@ -306,7 +322,7 @@
 ;
 ; Here is a direct link to the search function:
 ;
-; https://github.com/fmw/clojure-lucene-demo/blob/master/src/clojure_lucene_demo/core.clj#L99
+; https://github.com/fmw/clojure-lucene-demo/blob/master/src/clojure_lucene_demo/core.clj#L115
 
 (deftest test-search
     (testing "testing search."
