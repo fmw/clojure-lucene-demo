@@ -25,11 +25,10 @@ Please feel free to contact me using the email address below in case
 you have any questions or suggestions.
 
 Check [Mark Triggs' Mailindex repository][mailindex] for another example of
-Lucene code in Clojure.
+Lucene code in Clojure. Also, make sure to look at the [unit
+tests][test-search], because they provide the best documentation to the code.
 
-[test-search]: https://github.com/fmw/clojure-lucene-demo/blob/master/test/clojure_lucene_demo/test/core.clj#L302
-
-[search]: https://github.com/fmw/clojure-lucene-demo/blob/master/src/clojure_lucene_demo/core.clj#L115
+[test-search]: https://github.com/fmw/clojure-lucene-demo/blob/master/test/clojure_lucene_demo/test/core.clj
 
 [lein]: https://github.com/technomancy/leiningen
 
