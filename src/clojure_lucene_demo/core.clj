@@ -37,7 +37,7 @@
     (NIOFSDirectory. (File. path))))
 
 (defn create-index-reader [#^Directory directory]
-  (. IndexReader open directory))
+  (IndexReader/open directory))
 
 (defn #^Field create-field
   "Creates a new Lucene Field object."
@@ -118,7 +118,7 @@
 
 (defn search [query query-filter limit reader analyzer]
   (let [searcher (IndexSearcher. reader)
-        parser (QueryParser. (. Version LUCENE_30) "fulltext" analyzer)
+        parser (QueryParser. (Version/LUCENE_30) "fulltext" analyzer)
         q (.parse parser query)
         top-docs (if-not (nil? query-filter)
                    (.search searcher q query-filter limit (new Sort))
