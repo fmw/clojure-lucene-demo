@@ -8,6 +8,12 @@ I've [documented this in a test][test-search]. You can also navigate to the
 I was hoping that this abstract test implementation would isolate the problem,
 but it didn't.
 
+Running the code is easy (assuming you have [Leiningen][lein] installed):
+
+    git clone https://github.com/fmw/clojure-lucene-demo.git
+    cd clojure-lucene-demo
+    lein test
+
 Now I took the time to write this abstract example of how I use Lucene with
 Clojure, I'm planning to keep it up as reference for others. That way, the
 code will serve some purpose once the problem is solved. Of course, any errors
@@ -19,6 +25,8 @@ you have any questions or suggestions.
 [test-search]: https://github.com/fmw/clojure-lucene-demo/blob/master/test/clojure_lucene_demo/test/core.clj#L302
 
 [search]: https://github.com/fmw/clojure-lucene-demo/blob/master/src/clojure_lucene_demo/core.clj#L115
+
+[lein]: https://github.com/technomancy/leiningen
 
 Copyright 2011, F.M. (Filip) de Waard <<fmw@vix.io>>.
 Distributed under the Apache License, version 2 (see the LICENSE file).
