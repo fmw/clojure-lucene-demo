@@ -82,7 +82,7 @@
         (is (.isTokenized field)))
     
     ; Lucene complains if you add a field that is neither
-    ; neither stored nor indexed, as it apparantly doesn't
+    ; neither stored or indexed, as it apparantly doesn't
     ; make sense. ;)
     ;
     ; Hmm...
