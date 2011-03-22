@@ -313,13 +313,46 @@
       (let [dir (create-directory :RAM)]
 
         (do (write-index! dir dummy-docs))
-
         (let [reader (create-index-reader dir)
               analyzer (create-analyzer)]
 
-          (let [result (search "planet" nil 5 reader analyzer)]
-            (is (= (:total-hits result) 3)))
+          (let [result (search "planet" nil 5 reader analyzer)
+                docs (get-docs reader (:docs result))]
+            (is (= (:total-hits result) 3))
           
+          ; if you look at this document, you can see there is
+          ; one with "clojure" as a category value in the resultset
+          (is (= (.get (first docs) "title") "Planet Clojure"))
+          (is (= (.get (first docs) "description")
+                       "Aggregates Clojure-related weblog posts."))
+          (is (= (.get (first docs) "category") "clojure"))
+          
+          (is (= (.get (nth docs 1) "title") "Planet Python"))
+          (is (= (.get (nth docs 1) "description")
+                       "Aggregates Python-related weblog posts."))
+          (is (= (.get (nth docs 1) "category") "python"))
+          
+          (is (= (.get (last docs) "title") "Planet Java.org"))
+          (is (= (.get (last docs) "description")
+                       "Aggregates Java-related weblog posts."))
+          (is (= (.get (last docs) "category") "java"))
+
+          ; this the failing test: as soon as the filter is applied
+          ; we get 0 results, instead of the expected result
+          ; (which is the first result from the query above
           (let [flt (create-filter {:category "clojure"})
-                result (search "planet" flt 5 reader analyzer)]
-            (is (= (:total-hits result) 1)))))))
+                result (search "planet" flt 5 reader analyzer)
+                term (.getTerm (get-field
+                             org.apache.lucene.search.QueryWrapperFilter
+                             "query"
+                             flt))]
+            ; there is only one document with "clojure" as the value of
+            ; the category field, so I expect to get a single result:
+            (is (= (:total-hits result) 1))
+            
+            ; this is redundant with the test for create-filter, but
+            ; it never hurts to check again. At least it looks like the
+            ; filter is correct?
+            (is (= (class flt) org.apache.lucene.search.QueryWrapperFilter))
+            (is (= (.field term) "category"))
+            (is (= (.text term) "\"clojure\""))))))))
