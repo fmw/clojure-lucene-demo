@@ -2,11 +2,11 @@ Clojure Lucene Demo
 ===================
 
 The reason I wrote this code is to demonstrate a problem I'm having with
-filters in Lucene. As soon as I apply a filter my searcher returns zero
-results. I've [documented this in a test][test-search]. You can also navigate
-to the [search function][search] directly. Do you have any idea what I'm doing
-wrong? I was hoping that this abstract test implementation would isolate the
-problem, but it didn't.
+filters in Lucene. When I apply a filter the search returns zero results.
+I've [documented this in a test][test-search]. You can also navigate to the
+[search function][search] directly. Do you have any idea what I'm doing wrong?
+I was hoping that this abstract test implementation would isolate the problem,
+but it didn't.
 
 Now I took the time to write this abstract example of how I use Lucene with
 Clojure, I'm planning to keep it up as reference for others. That way, the
